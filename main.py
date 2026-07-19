@@ -6,11 +6,11 @@ from matplotlib import pyplot as plt
 
 os.environ["KERAS_BACKEND"] = "tensorflow"
 import tensorflow as tf
-from audioFiles import get_wav_files, getTrainWavFiles, getFileLabelTouple, TARGET_WORDS
+from audioFiles import get_wav_files, getFileLabelTouple, CLASS_NAMES
 import random
 import numpy as np
 
-label_names = np.array(["yes", "no","unknown"])
+label_names = np.array(CLASS_NAMES)
 
 seed = 42
 random.seed(seed)
@@ -71,27 +71,8 @@ def plot_spectrogram(spectrogram, ax):
 if __name__ == '__main__':
 
     train_wav_files, validation_wav_files, test_wav_files = get_wav_files()
-
-    yes_train_wav_files, no_train_wav_files, unknown_train_wav_files = (
-        getTrainWavFiles(train_wav_files)
-    )
-
-    target = min(
-        len(yes_train_wav_files),
-        len(no_train_wav_files)
-    )
-
-    # unknown_train_wav_files = random.sample(
-    #     unknown_train_wav_files,
-    #     target*3
-    # )
-    #
-    # train_wav_files = (
-    #         yes_train_wav_files +
-    #         no_train_wav_files +
-    #         unknown_train_wav_files
-    # )
-    #
+    num_labels = len(label_names)
+    print((num_labels))
     train_ds, val_ds, test_ds = getFileLabelTouple(
         train_wav_files,
         validation_wav_files,
@@ -150,9 +131,9 @@ if __name__ == '__main__':
     val_spectrogram_ds = val_spectrogram_ds.cache().prefetch(tf.data.AUTOTUNE)
     test_spectrogram_ds = test_spectrogram_ds.cache().prefetch(tf.data.AUTOTUNE)
 
+
     input_shape = example_spectrograms.shape[1:]
     print('Input shape:', input_shape)
-    num_labels = len(label_names)
 
     # Instantiate the `tf.keras.layers.Normalization` layer.
     norm_layer = layers.Normalization()
@@ -184,16 +165,14 @@ if __name__ == '__main__':
         metrics=['accuracy'],
     )
 
+    print("num_labels =", num_labels)
+    print("output shape =", model.output_shape)
+
     EPOCHS = 20
     history = model.fit(
         train_spectrogram_ds,
         validation_data=val_spectrogram_ds,
         epochs=EPOCHS,
-        class_weight={
-            0: 1,
-            1: 1,
-            2: 0.2
-        },
         callbacks=tf.keras.callbacks.EarlyStopping(verbose=1, patience=2),
     )
     model.save("speech_command_model.keras")
