@@ -10,7 +10,7 @@ from audioFiles import get_wav_files, getTrainWavFiles, getFileLabelTouple, TARG
 import random
 import numpy as np
 
-label_names = np.array(TARGET_WORDS)
+label_names = np.array(["yes", "no","unknown"])
 
 seed = 42
 random.seed(seed)
@@ -196,6 +196,7 @@ if __name__ == '__main__':
         },
         callbacks=tf.keras.callbacks.EarlyStopping(verbose=1, patience=2),
     )
+    model.save("speech_command_model.keras")
 
     metrics = history.history
     plt.figure(figsize=(16, 6))
@@ -230,7 +231,7 @@ if __name__ == '__main__':
     plt.ylabel('Label')
     plt.show()
 
-    model.save("speech_command_model.keras")
+
 
 
 
